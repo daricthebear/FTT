@@ -1,0 +1,28 @@
+#include "PluginManager.h"
+#include "TouchZoneRenderer.h"
+#include "TrainingModes.h"
+#include "ConfigManager.h"
+
+TouchZoneRenderer* renderer;
+ConfigManager* configManager;
+TrainingModes* trainingModes;
+
+void PluginInit() {
+    configManager = new ConfigManager();
+    renderer = new TouchZoneRenderer(configManager);
+    trainingModes = new TrainingModes(renderer, configManager);
+
+    // Hook to game events and load initial settings
+    configManager->LoadConfig();
+}
+
+void PluginUpdate(float deltaTime) {
+    trainingModes->Update(deltaTime);
+    renderer->Render();
+}
+
+void PluginShutdown() {
+    delete trainingModes;
+    delete renderer;
+    delete configManager;
+}
