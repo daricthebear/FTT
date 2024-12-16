@@ -84,10 +84,6 @@ void FirstTouchTrainer::RegisterCvars() {
     float speedDefaultY = *bScreenSizeY * 0.25f;
     cvarManager->registerCvar("FTT_X_Position", std::to_string(speedDefaultX), "Change Text X Position", true).bindTo(tXPos);
     cvarManager->registerCvar("FTT_Y_Position", std::to_string(speedDefaultY), "Change Text Y Position", true).bindTo(tYPos);
-    *tXPos = speedDefaultXInt;
-    *tYPos = speedDefaultYInt;
-    cvarManager->registerCvar("FTT_X_Position", std::to_string(speedDefaultXInt), "Change Text X Position", true).bindTo(tXPos);
-    cvarManager->registerCvar("FTT_Y_Position", std::to_string(speedDefaultYInt), "Change Text Y Position", true).bindTo(tYPos);
 
     cvarManager->registerCvar("FTT_Good_Range", "#00FF00", "Good Range Color", true).bindTo(cGoodColor);
     cvarManager->registerCvar("FTT_Alright_Range", "#FFFF00", "Alright Range Color", true).bindTo(cAlrightColor);
@@ -109,7 +105,7 @@ void FirstTouchTrainer::RegisterEvents() {
     gameWrapper->HookEvent("Function TAGame.Mutator_Freeplay_TA.Init", bind(&FirstTouchTrainer::OnFreeplayLoad, this, std::placeholders::_1));
     gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.Destroyed", bind(&FirstTouchTrainer::OnFreeplayDestroy, this, std::placeholders::_1));
 }
-    gameWrapper->RegisterDrawable([&](CanvasWrapper canvas) {
+
 void FirstTouchTrainer::RegisterRenderCallbacks() {
     gameWrapper->RegisterDrawable([this](CanvasWrapper canvas) {
         if (*bEnabled) {
@@ -153,12 +149,12 @@ FirstTouchResult FirstTouchTrainer::firstTouchTrainer() {
         return {0.0f, 0.0f, 0.0f, 93.14f, 0.0f};
     }
 
-    if (std::abs(velocityDifference) <= 1) {
+    Vector ballPos = ball.GetCurrentRBLocation();
     Vector carVel = car.GetVelocity();
     Vector ballVel = ball.GetVelocity();
 
     float carXYMag = GetMagnitude(carVel.X, carVel.Y);
-    if (std::abs(zVelDif) <= 1) {
+    float ballXYMag = GetMagnitude(ballVel.X, ballVel.Y);
 
     float velocityDifference = carXYMag - ballXYMag;
     if (-1 <= velocityDifference && velocityDifference <= 1) {
@@ -194,7 +190,6 @@ void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName) {
 
 void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas) {
     if (*bEnabled) {
-        // Add rendering logic here
         canvas.SetColor(*cGoodColor);
         canvas.DrawString("First Touch Trainer Enabled", *tXPos, *tYPos, *tTextSize, *tTextSize, *tDropShadow);
     }
@@ -203,8 +198,8 @@ void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas) {
 void FirstTouchTrainer::RenderSessionTimer(CanvasWrapper canvas) {
     if (*sSessionTimerEnabled && sessionRunning) {
         float elapsedTime = gameWrapper->GetGameTime() - sessionStartTime;
-        float minutes = static_cast<int>(elapsedTime) / 60.0f;
-        float seconds = static_cast<int>(elapsedTime) % 60.0f;
+        int minutes = static_cast<int>(elapsedTime) / 60;
+        int seconds = static_cast<int>(elapsedTime) % 60;
         std::string timerText = ToStringPrecision(minutes, 2) + ":" + ToStringPrecision(seconds, 2);
         canvas.SetColor(*sSessionTimerColor);
         canvas.DrawString("Session Timer: " + timerText, *sSessionTimerX, *sSessionTimerY, *tTextSize, *tTextSize, *tDropShadow);
